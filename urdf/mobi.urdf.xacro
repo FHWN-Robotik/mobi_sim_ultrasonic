@@ -2,8 +2,8 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="mobi">
 
   <!-- Hier werden die Dateien importiert. -->
-  <xacro:include filename="$(find mobi_sim)/urdf/common_properties.xacro" />
-  <xacro:include filename="$(find mobi_sim)/urdf/mobi.gazebo.xacro" />
+  <xacro:include filename="$(find mobi_sim_ultrasonic)/urdf/common_properties.xacro" />
+  <xacro:include filename="$(find mobi_sim_ultrasonic)/urdf/mobi.gazebo.xacro" />
   <!-- <xacro:include filename="$(find mobi_ros2)/urdf/macro.tower.urdf.xacro" /> -->
 
   <!-- Farben vom Roboter für RVIZ-->
@@ -51,6 +51,31 @@
     </inertial>
   </link>
 
+  <!-- ================================================= -->
+  <!-- Frontmarkierung zur Erkennung der Fahrtrichtung   -->
+  <!-- ================================================= -->
+
+  <joint name="front_marker_joint" type="fixed">
+    <parent link="chassis_link"/>
+    <child link="front_marker_link"/>
+    <origin xyz="0.1475 0 0.045" rpy="0 0 0"/>
+  </joint>
+
+  <link name="front_marker_link">
+
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+
+      <geometry>
+        <box size="0.010 0.120 0.030"/>
+      </geometry>
+
+      <material name="front_blue">
+        <color rgba="0.0 0.2 1.0 1.0"/>
+      </material>
+    </visual>
+
+  </link>
 
   <!-- 4 Räder werden hier hinzugefügt
   Links vorne 
@@ -311,4 +336,221 @@
   <link name="laser_frame"/>
 
   
+<!-- ====================================================== -->
+<!-- Ultraschallsensoren am oberen Gehäuse von Mobi         -->
+<!-- 6 runde, hellgraue Sensorköpfe                         -->
+<!-- ====================================================== -->
+
+<xacro:macro name="ultrasonic_sensor"
+             params="name x y z roll pitch yaw offset_axis">
+
+  <!-- Befestigung am oberen grauen Gehäuse -->
+  <joint name="${name}_joint" type="fixed">
+    <parent link="housing_link"/>
+    <child link="${name}_link"/>
+
+    <origin xyz="${x} ${y} ${z}"
+            rpy="${roll} ${pitch} ${yaw}"/>
+  </joint>
+
+<!-- Ultraschallsensor mit zwei Schallwandlern -->
+
+<link name="${name}_link">
+
+  <!-- Schallwandler 1 -->
+  <visual>
+    <origin xyz="${-0.007 if offset_axis == 'x' else 0}
+       ${-0.007 if offset_axis == 'y' else 0}
+       0"
+    rpy="0 0 0"/>
+
+    <geometry>
+      <cylinder radius="0.006" length="0.005"/>
+    </geometry>
+
+    <material name="ultrasonic_light_gray">
+      <color rgba="0.8 0.8 0.8 1.0"/>
+    </material>
+
+  </visual>
+
+  <!-- Schallwandler 2 -->
+  <visual>
+    <origin
+      xyz="${0.007 if offset_axis == 'x' else 0}
+        ${0.007 if offset_axis == 'y' else 0}
+        0"
+      rpy="0 0 0"/> 
+
+    <geometry>
+      <cylinder radius="0.006" length="0.005"/>
+    </geometry>
+
+    <material name="ultrasonic_light_gray">
+      <color rgba="0.8 0.8 0.8 1.0"/>
+    </material>
+
+  </visual>
+
+</link>
+
+</xacro:macro>
+
+<!-- ======================================= -->
+<!-- VORNE: Zwei Ultraschallsensoren         -->
+<!-- ======================================= -->
+
+<xacro:ultrasonic_sensor
+  name="us_front_left"
+  x="0.086"
+  y="0.035"
+  z="0.035"
+  roll="0"
+  pitch="1.5708"
+  yaw="0"
+  offset_axis="y"/>
+
+<xacro:ultrasonic_sensor
+  name="us_front_right"
+  x="0.086"
+  y="-0.035"
+  z="0.035"
+  roll="0"
+  pitch="1.5708"
+  yaw="0"
+  offset_axis="y"/>
+
+
+<!-- ======================================= -->
+<!-- HINTEN: Zwei Ultraschallsensoren        -->
+<!-- ======================================= -->
+
+<xacro:ultrasonic_sensor
+  name="us_rear_left"
+  x="-0.086"
+  y="0.035"
+  z="0.035"
+  roll="0"
+  pitch="-1.5708"
+  yaw="0"
+  offset_axis="y"/>
+
+<xacro:ultrasonic_sensor
+  name="us_rear_right"
+  x="-0.086"
+  y="-0.035"
+  z="0.035"
+  roll="0"
+  pitch="-1.5708"
+  yaw="0"
+  offset_axis="y"/>
+
+
+<!-- ======================================= -->
+<!-- SEITLICH: Je ein Ultraschallsensor      -->
+<!-- ======================================= -->
+
+<xacro:ultrasonic_sensor
+  name="us_left"
+  x="0"
+  y="0.080"
+  z="0.035"
+  roll="1.5708"
+  pitch="0"
+  yaw="0"
+  offset_axis="x"/>
+
+<xacro:ultrasonic_sensor
+  name="us_right"
+  x="0"
+  y="-0.080"
+  z="0.035"
+  roll="-1.5708"
+  pitch="0"
+  yaw="0"
+  offset_axis="x"/>
+
+  <!-- ===================================================== -->
+  <!-- Lokale Koordinatensysteme der Ultraschallsensoren     -->
+  <!-- X-Achse: Messrichtung                                 -->
+  <!-- Y-Achse: seitlich zur Messrichtung                     -->
+  <!-- Z-Achse: nach oben                                    -->
+  <!-- ===================================================== -->
+
+  <xacro:macro name="ultrasonic_range_frame"
+               params="name x y z yaw">
+
+    <joint name="${name}_range_joint" type="fixed">
+
+      <parent link="housing_link"/>
+      <child link="${name}_range_frame"/>
+
+      <origin
+        xyz="${x} ${y} ${z}"
+        rpy="0 0 ${yaw}"/>
+
+    </joint>
+
+    <link name="${name}_range_frame"/>
+
+  </xacro:macro>
+
+
+    <!-- ===================================================== -->
+  <!-- Vordere Ultraschallsensoren                           -->
+  <!-- ===================================================== -->
+
+  <xacro:ultrasonic_range_frame
+    name="us_front_left"
+    x="0.086"
+    y="0.035"
+    z="0.035"
+    yaw="0"/>
+
+  <xacro:ultrasonic_range_frame
+    name="us_front_right"
+    x="0.086"
+    y="-0.035"
+    z="0.035"
+    yaw="0"/>
+
+
+  <!-- ===================================================== -->
+  <!-- Hintere Ultraschallsensoren                           -->
+  <!-- ===================================================== -->
+
+  <xacro:ultrasonic_range_frame
+    name="us_rear_left"
+    x="-0.086"
+    y="0.035"
+    z="0.035"
+    yaw="3.14159265359"/>
+
+  <xacro:ultrasonic_range_frame
+    name="us_rear_right"
+    x="-0.086"
+    y="-0.035"
+    z="0.035"
+    yaw="3.14159265359"/>
+
+
+  <!-- ===================================================== -->
+  <!-- Seitliche Ultraschallsensoren                         -->
+  <!-- ===================================================== -->
+
+  <xacro:ultrasonic_range_frame
+    name="us_left"
+    x="0"
+    y="0.080"
+    z="0.035"
+    yaw="1.57079632679"/>
+
+  <xacro:ultrasonic_range_frame
+    name="us_right"
+    x="0"
+    y="-0.080"
+    z="0.035"
+    yaw="-1.57079632679"/>
+
+
 </robot>

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 
-project(mobi_sim)
+project(mobi_sim_ultrasonic)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -19,6 +19,7 @@ install(
     urdf
     launch
     worlds
+    rviz
   DESTINATION share/${PROJECT_NAME}
 )
 
@@ -30,5 +31,11 @@ if(BUILD_TESTING)
 
   ament_lint_auto_find_test_dependencies()
 endif()
+
+install(
+  PROGRAMS
+    scripts/ultrasonic_converter.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 ament_package()

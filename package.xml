@@ -3,11 +3,11 @@
 
 <package format="3">
 
-  <name>mobi_sim</name>
+  <name>mobi_sim_ultrasonic</name>
   <version>0.0.1</version>
 
   <description>
-    Mobi mobile robot simulation for ROS 2 Jazzy and Gazebo Harmonic.
+    Mobi mobile robot simulation with six ultrasonic sensors for ROS 2 Jazzy and Gazebo Harmonic.
   </description>
 
   <maintainer email="roblab@example.com">roblab</maintainer>
@@ -27,6 +27,13 @@
 
   <!-- RViz -->
   <depend>rviz2</depend>
+
+  <!-- Ultraschall-Konvertierungsnode -->
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+
+  <!-- Keyboard teleoperation -->
+  <exec_depend>teleop_twist_keyboard</exec_depend>
 
   <!-- Optional tools used during development -->
   <test_depend>ament_lint_auto</test_depend>

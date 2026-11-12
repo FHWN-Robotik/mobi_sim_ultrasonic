@@ -11,7 +11,7 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
-    package_name = 'mobi_sim'
+    package_name = 'mobi_sim_ultrasonic'
 
     package_share = get_package_share_directory(package_name)
 
@@ -99,7 +99,7 @@ def generate_launch_description():
             '/odom@nav_msgs/msg/Odometry[gz.msgs.Odometry',
             # /scan is bridged separately by laser_bridge (sets frame_id to laser_frame)
             '/imu@sensor_msgs/msg/Imu[gz.msgs.IMU',
-            '/model/mobi/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V',
+            # '/model/mobi/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V',
             '/world/empty/model/mobi/joint_state@sensor_msgs/msg/JointState[gz.msgs.Model',
         ],
         remappings=[
@@ -121,10 +121,39 @@ def generate_launch_description():
         output='screen'
     )
 
+
+    # ---------------------------------------------------------
+    # Ultraschall-Sensoren: Gazebo -> ROS 2
+    # ---------------------------------------------------------
+
+    ultrasonic_sensors = [
+        'us_front_left',
+        'us_front_right',
+        'us_rear_left',
+        'us_rear_right',
+        'us_left',
+        'us_right'
+    ]
+
+    ultrasonic_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        name='ultrasonic_bridge',
+        arguments=[
+            f'/ultrasonic/{sensor}/scan'
+            '@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan'
+            for sensor in ultrasonic_sensors
+        ],
+        output='screen'
+    )
+
+
     return LaunchDescription([
         gazebo,
         robot_state_publisher,
         bridge,
         laser_bridge,
+        ultrasonic_bridge,
         spawn_robot
     ])
+
